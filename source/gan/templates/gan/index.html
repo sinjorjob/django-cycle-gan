@@ -1,0 +1,143 @@
+{% extends 'gan/base.html' %}
+{% load static %}
+{% block content %}
+
+<section>
+  <h1>GrayToColor</h1>
+  <p>モノクロ画像をアップロードするとGANモデルによって自動的に画像をカラーに変換します。</p>
+  <!-- 画像表示 -->
+  <table cellpadding="5">
+    <tr>
+      <td><img src="{% static 'img/gray.jpg' %}" width="200px" height="200px"></td>
+      <td><img src="{% static 'img/color.jpg' %}" width="200px" height="200px"></td>
+    </tr>
+    <tr>
+      <td>モノクロ画像(インプット）</td>
+      <td>カラー画像(アウトプット）</td>  
+    </tr>
+  </table>
+</section>  
+<section>
+<hr>
+<h1>画像をアプロード</h1>
+<p>モノクロ画像をアップロードするとGANモデルによって自動的に画像をカラーに変換します。</p>
+<!-- 画像表示 -->
+<table cellpadding="5">
+  <tr>
+    <td class="box6" ><img id="img1" width="230px" height="230px"></td>
+    <td class="box6"><img id="img2" width="230px" height="230px"></td>
+  </tr>
+  <tr>
+    <td>インプット</td>
+    <td>アウトプット</td>
+   
+  </tr>
+</table>
+
+<form action="{% url 'gan:predict' %}" method="post" class="form" enctype="multipart/form-data" id="imgForm">
+  {% csrf_token %}
+  <div class="form-group">
+    <div class="custom-file">
+      {{ form.image}}
+    </div>
+  </div>
+  <button type="submit" id="button" class="btn">Colorize</button>
+</form>
+</section>
+
+<script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+<!-- javascript -->
+<script>  
+$(function(){
+  $('#id_image').change(function(e){
+    //ファイルオブジェクトを取得する
+    var file = e.target.files[0];
+    var reader = new FileReader();
+ 
+    //画像でない場合は処理終了
+    if(file.type.indexOf("image") < 0){
+      alert("画像ファイルを指定してください。");
+      return false;
+    }
+ 
+    //アップロードした画像を設定する
+    reader.onload = (function(file){
+      return function(e){
+       
+        $("#img1").attr("src", e.target.result);
+        $("#img1").attr("title", file.name);
+      };
+    })(file);
+    reader.readAsDataURL(file);
+ 
+  });
+});
+</script>
+
+<!-- セキュリティ対応-->
+<script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    var csrftoken = getCookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    // セキュリティ対応
+
+   // 画像をアップロード
+        // 送信ボタンで呼ばれる
+        //Ajax通信中にローディングを表示
+        $('#imgForm').on('submit', e => {
+            // デフォルトのイベントをキャンセルし、ページ遷移しないように!
+            e.preventDefault();
+            $(document).ajaxSend(function() {
+          $("#overlay").fadeIn(300);　
+      });
+            var formData = new FormData($('#imgForm').get(0));
+            $.ajax({
+                'url': '{% url "gan:predict" %}',
+                'type': 'POST',
+                'processData': false,
+                'contentType': false,
+                'data': formData,
+            }).done( response => { 
+                console.log("success2!");
+                $("#img2").attr("src", response.img_str);
+                setTimeout(function(){
+                  $("#overlay").fadeOut(300);
+              },500);
+            })
+            .fail((ata, textStatus, xhr) => {
+                alert(xhr);
+            });
+        });
+</script>
+
+
+{% endblock %}
+
