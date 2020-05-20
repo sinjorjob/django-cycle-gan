@@ -3,7 +3,7 @@ An app to colorize a black and white landscape image using a trained Cycle GAN m
 
 # GAN model
 
-Trained models are stored under django-cycle-gan / source / gan / models.  
+Trained models parameters are stored under django-cycle-gan / source / gan / models.  
 This model is a trained model that only learned 28 epochs, but it is an unfinished product.  
 The model will be updated at any time.
 
