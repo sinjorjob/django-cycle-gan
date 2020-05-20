@@ -4,4 +4,4 @@ An app to colorize a black and white landscape image using a trained Cycle GAN m
 
 # Demo
 
-![result](https://github.com/sinjorjob/django-cycle-gan.git/images/demo.gif)
+![demo](https://github.com/sinjorjob/django-cycle-gan/blob/master/images/demo.gif)
